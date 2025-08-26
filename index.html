@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login — Data Training</title>
+  <style>
+    /* Minimal, bersih */
+    body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f6f7fb;margin:0;font-family:Arial,sans-serif}
+    .card{background:#fff;max-width:420px;width:100%;padding:24px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.07)}
+    h1{text-align:center;margin:0 0 12px;font-size:20px}
+    label{display:block;margin:10px 0 6px;font-weight:600;font-size:13px;color:#333}
+    input{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box}
+    .row{display:flex;gap:10px;margin-top:12px}
+    button{width:100%;padding:12px;border:none;border-radius:10px;font-size:15px;cursor:pointer}
+    .btn-primary{background:#4f46e5;color:#fff}
+    .btn-secondary{background:#f59e0b;color:#fff}
+    .msg{min-height:20px;margin-top:12px;font-size:14px;text-align:center}
+    .msg.error{color:#b91c1c}
+    .msg.ok{color:#15803d}
+    .hint{font-size:12px;color:#666;margin-top:8px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Masuk / Daftar — Data Training</h1>
+
+    <label for="username">Nama (username)</label>
+    <input id="username" placeholder="cth: irwan" autocomplete="username" />
+
+    <label for="password">Password</label>
+    <input id="password" type="password" placeholder="••••••" autocomplete="current-password" />
+
+    <div class="row">
+      <button id="loginBtn" class="btn-primary">Masuk</button>
+      <button id="registerBtn" class="btn-secondary">Daftar (Request)</button>
+    </div>
+
+    <div id="message" class="msg"></div>
+    <div class="hint">Akun baru akan *pending* — Admin harus approve di Firestore (collection: <b>users</b>).</div>
+  </div>
+
+  <!-- Script untuk logika login dan register -->
+  <script type="module">
+    // 1. Impor instance 'auth' dan 'db' dari file konfigurasi Firebase Anda
+    import { auth, db } from "./firebase-config.js";
+
+    // 2. Impor fungsi-fungsi spesifik yang Anda butuhkan langsung dari CDN Firebase SDK
+    import {
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import {
+      doc,
+      setDoc,
+      getDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    // Hapus seluruh blok firebaseConfig dan inisialisasi app, auth, db di sini.
+    // Sekarang 'auth' dan 'db' sudah diimpor dari firebase-config.js.
+
+    // Helper: map username -> internal email (Firebase Auth needs an email)
+    function usernameToEmail(username) {
+      const u = String(username || "").trim().toLowerCase();
+      if (!u) throw new Error("Username kosong.");
+      // domain internal — bisa diubah kalau mau
+      return `${u}@datatraining.local`;
+    }
+
+    // UI refs
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const msgEl = document.getElementById('message');
+
+    function showMsg(text, type = 'error') {
+      msgEl.textContent = text;
+      msgEl.className = 'msg ' + (type === 'ok' ? 'ok' : 'error');
+    }
+
+    function clearMsg() {
+      msgEl.textContent = '';
+      msgEl.className = 'msg';
+    }
+
+    // If already logged-in and approved, go to home (prevents showing login form)
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      try {
+        const docRef = doc(db, 'users', user.uid);
+        const snap = await getDoc(docRef);
+        if (snap.exists() && snap.data().approved === true) {
+          // set login time for home auto-logout logic
+          localStorage.setItem('loginTime', Date.now());
+          window.location.href = 'home.html';
+        } else {
+          // not approved, sign out immediately
+          await signOut(auth);
+          showMsg('Akun Anda belum di-approve admin. Tunggu approval.', 'error');
+        }
+      } catch (e) {
+        await signOut(auth);
+        showMsg('Terjadi error saat cek status. Coba lagi.');
+      }
+    });
+
+    // LOGIN
+    loginBtn.addEventListener('click', async () => {
+      clearMsg();
+      loginBtn.disabled = registerBtn.disabled = true;
+      try {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        if (!username || !password) throw new Error('Username & password wajib diisi.');
+
+        const email = usernameToEmail(username);
+
+        // sign in
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+
+        // cek approved di Firestore
+        const uid = cred.user.uid;
+        const userDocRef = doc(db, 'users', uid);
+        const snap = await getDoc(userDocRef);
+
+        if (!snap.exists()) {
+          // kalau admin bikin akun langsung di Firebase Console tanpa doc, treat as pending
+          await signOut(auth);
+          showMsg('Akun belum lengkap (admin belum menambahkan data). Hubungi admin.', 'error');
+        } else if (snap.data().approved !== true) {
+          await signOut(auth);
+          showMsg('Akun Anda belum di-approve admin. Tunggu approval.', 'error');
+        } else {
+          // approved => masuk
+          localStorage.setItem('loginTime', Date.now());
+          showMsg('Login sukses. Mengarahkan...', 'ok');
+          setTimeout(() => window.location.href = 'home.html', 700);
+        }
+
+      } catch (e) {
+        showMsg(e.message || 'Login gagal.');
+      } finally {
+        loginBtn.disabled = registerBtn.disabled = false;
+      }
+    });
+
+    // REGISTER (Request account)
+    registerBtn.addEventListener('click', async () => {
+      clearMsg();
+      loginBtn.disabled = registerBtn.disabled = true;
+      try {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        if (!username || !password) throw new Error('Username & password wajib diisi.');
+
+        const email = usernameToEmail(username);
+
+        // create user in Firebase Auth
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = cred.user.uid;
+
+        // create Firestore user doc with approved:false
+        await setDoc(doc(db, 'users', uid), {
+          username: username,
+          email: email,
+          approved: false,
+          createdAt: serverTimestamp()
+        });
+
+        // sign out so user can't use account until approved
+        await signOut(auth);
+
+        showMsg('Request terkirim. Tunggu approval admin di Firebase Console.', 'ok');
+
+      } catch (e) {
+        // handle if username already taken (auth/email-already-in-use)
+        showMsg(e.message || 'Gagal mendaftar.');
+      } finally {
+        loginBtn.disabled = registerBtn.disabled = false;
+      }
+    });
+  </script>
+
+  <!-- Script ini bisa tetap ada jika Anda ingin memastikan console.log(auth, db) tetap berjalan
+       atau jika ada script lain yang hanya ingin memeriksa koneksi Firebase.
+       Penting: tidak boleh ada kode yang duplikat dengan script di atas! -->
+  <script type="module">
+    import { auth, db } from "./firebase-config.js";
+    console.log("Firebase ready:", auth, db);
+  </script>
+</body>
+</html>
