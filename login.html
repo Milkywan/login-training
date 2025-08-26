@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Cari Data Training</title>
+    <link rel="stylesheet" href="style.css"> <!-- Pastikan ini sesuai dengan CSS Anda -->
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login ke Aplikasi Data Training</h2>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email Anda" required>
+            <input type="password" id="password" placeholder="Password Anda" required>
+            <button type="submit">Login</button>
+            <p id="errorMessage" style="color: red;"></p>
+        </form>
+        <p>Belum punya akun? <a href="#" id="signUpLink">Daftar Sekarang</a></p>
+    </div>
+
+    <!-- Sertakan Firebase SDK (jika belum ada) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+    <!-- Skrip untuk inisialisasi Firebase dan logika autentikasi -->
+    <script type="module" src="auth.js"></script>
+</body>
+</html>

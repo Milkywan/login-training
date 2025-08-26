@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3664786140335961"
+    crossorigin="anonymous"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cari Data Training</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="top-actions">
+    <button class="traktir-btn" onclick="openTraktir()">☕ Traktir Kopi</button>
+    <span id="arrow" class="arrow-hint" style="display:none;">⬅</span>
+  </div>
+  <h2><marquee>Sudah ngopi belum, kalau belum....yookk kita ngopi ☕</marquee></h2>
+</header>
+
+<div style="margin-top: 15px; display:flex; gap:10px; flex-wrap: wrap;">
+  <select id="searchType">
+    <option value="nik">🔍 Cari ID Number</option>
+    <option value="nama">🔍 Cari Nama</option>
+  </select>
+  <input type="text" id="searchInput" placeholder="Masukkan kata kunci" onkeyup="debouncedFilterData()">
+</div>
+
+<div class="table-container">
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>No.</th>
+        <th>ID Number</th>
+        <th>Nama</th>
+        <th>Judul Training</th>
+        <th>Tanggal Training</th>
+        <th>Durasi Training (Jam)</th>
+        <th>Expired Date</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="totalDurationsContainer"></div>
+
+<footer>
+  <br>© 2025 by <a href="https://irwanss.web.app/" target="_blank" rel="noopener">IrwanS</a>
+</footer>
+
+<button class="traktir-floating" onclick="openTraktir()">☕ Traktir Kopi</button>
+<button id="logoutBtn" class="logout-floating">🚪 Logout</button>
+<button class="author-floating" onclick="window.open('https://irwanss.web.app/', '_blank')">My Portfolio</button>
+
+<div id="traktirModal" class="modal">
+  <span class="modal-close" onclick="closeTraktir()">&times;</span>
+  <div class="modal-content">
+    <p>Kalau apa yang saya buat ini bermanfaat,<br>
+      dan mau traktir saya secangkir kopi ☕,<br>
+      atau bantu sedikit biaya maintenance web <br>
+      boleh langsung lewat QR di bawah.<br>
+      Santai aja, nggak wajib, tapi bikin saya senyum. 😄</p>
+    <div>
+      <div onclick="zoomQR('gopay')"><img src="Images/Gopay.jpeg" alt="Gopay QR"></div>
+      <div onclick="zoomQR('dana')"><img src="Images/DANA.jpeg" alt="DANA QR"></div>
+      <div onclick="zoomQR('ovo')"><img src="Images/Ovo.jpeg" alt="OVO QR"></div>
+    </div>
+    <p style="margin-top:10px;">Kalau nggak bisa scan, kirim aja manual ke nomor:<br>
+      <b>08125331585</b> (GOPAY, DANA, OVO)</p>
+  </div>
+</div>
+
+<div id="zoomModal" class="modal">
+  <span class="modal-close" onclick="closeZoom()">&times;</span>
+  <div class="modal-content">
+    <img id="zoomQRImg" src="" alt="QR Besar">
+  </div>
+</div>
+
+<!-- PapaParse -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+<!-- Firebase + Auth -->
+<script type="module">
+  // Impor instance auth yang sudah diinisialisasi dari firebase-config.js
+  import { auth } from "./firebase-config.js";
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+  // 🔐 Cek apakah user login
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "login.html"; // kalau belum login
+    } else {
+      console.log("User login:", user.uid);
+      // Simpan waktu login kalau belum ada
+      if (!localStorage.getItem("loginTime")) {
+        localStorage.setItem("loginTime", Date.now());
+      }
+    }
+  });
+
+  // 🚪 Logout manual
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    signOut(auth).then(() => {
+      localStorage.removeItem("loginTime");
+      window.location.href = "login.html";
+    });
+  });
+
+  // ⏰ Auto logout setelah 10 menit
+  setInterval(() => {
+    const loginTime = localStorage.getItem("loginTime");
+    if (loginTime) {
+      const now = Date.now();
+      const diff = now - loginTime;
+      if (diff >= 10 * 60 * 1000) { // 10 menit
+        signOut(auth).then(() => {
+          localStorage.removeItem("loginTime");
+          alert("Sesi Anda habis, silakan login ulang.");
+          window.location.href = "login.html";
+        });
+      }
+    }
+  }, 60000); // cek tiap 1 menit
+</script>
+
+<!-- Script lama lo -->
+<script type="module" src="analytics.js"></script>
+<script type="module" src="script.js"></script>
+<!-- Jika script.js atau analytics.js membutuhkan 'db' dari Firestore,
+     maka Anda juga perlu mengimpornya dari firebase-config.js
+     di awal salah satu script module ini, misalnya di script.js atau
+     di blok script Firebase + Auth di atas jika home.html langsung menggunakannya.
+     Untuk saat ini, saya hanya mengimpor 'auth' sesuai yang Anda tulis.
+-->
+
+</body>
+</html>
