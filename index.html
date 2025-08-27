@@ -24,7 +24,7 @@
   <div class="card">
     <h1>Masuk / Daftar — Data Training</h1>
 
-    <label for="username">Nama (username)</label>
+    <label for="username">Nama (username tanpa spasi)</label>
     <input id="username" placeholder="cth: irwan" autocomplete="username" />
 
     <label for="password">Password</label>
@@ -130,8 +130,7 @@
     }
   });
 
-  // REGISTER
-  // REGISTER
+// REGISTER
 registerBtn.addEventListener('click', async () => {
   clearMsg();
   loginBtn.disabled = registerBtn.disabled = true;
@@ -147,28 +146,40 @@ registerBtn.addEventListener('click', async () => {
 
     console.log('LOG 2: Akun Firebase Auth berhasil dibuat. UID:', uid);
 
-    // 1. simpan ke pendaftar lebih dulu
+    // --- simpan ke pendaftar
     console.log('LOG 3a: Mau simpan ke pendaftar...');
-    await setDoc(doc(db, 'pendaftar', uid), {
-      username,
-      password, // ⚠️ uji coba internal
-      createdAt: new Date().toISOString()
-    });
-    console.log('LOG 4: Dokumen pendaftar berhasil dibuat.');
+    try {
+      await setDoc(doc(db, 'pendaftar', uid), {
+        username,
+        password, // ⚠️ hanya uji coba internal
+        createdAt: serverTimestamp()
+      });
+      console.log('LOG 4: Dokumen pendaftar berhasil dibuat.');
+    } catch (err) {
+      console.error('ERROR SIMPAN PENDAFTAR:', err.code, err.message);
+      showMsg('Gagal simpan ke pendaftar: ' + (err.message || ''), 'error');
+    }
 
-    // 2. baru simpan ke users
-    await setDoc(doc(db, 'users', uid), {
-      username,
-      email,
-      approved: false,
-      createdAt: new Date().toISOString()
-    });
-    console.log('LOG 5: Dokumen users berhasil dibuat.');
+    // --- simpan ke users
+    console.log('LOG 3b: Mau simpan ke users...');
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        username,
+        email,
+        approved: false,
+        createdAt: serverTimestamp()
+      });
+      console.log('LOG 5: Dokumen users berhasil dibuat.');
+    } catch (err) {
+      console.error('ERROR SIMPAN USERS:', err.code, err.message);
+      showMsg('Gagal simpan ke users: ' + (err.message || ''), 'error');
+    }
 
-    // 3. sign out
+    // --- sign out
     await signOut(auth);
     showMsg('Request terkirim. Tunggu approval admin ya.', 'ok');
     console.log('LOG 6: Pendaftaran selesai dan sukses.');
+
   } catch (e) {
     console.error('LOG ERROR: Terjadi kesalahan saat pendaftaran:', e);
     showMsg(e.message || 'Gagal mendaftar.');
@@ -177,6 +188,7 @@ registerBtn.addEventListener('click', async () => {
     console.log('LOG FINALLY: Proses pendaftaran selesai (finally block).');
   }
 });
+
 </script>
   <script type="module">
     import { auth, db } from "./firebase-config.js";
@@ -184,6 +196,7 @@ registerBtn.addEventListener('click', async () => {
   </script>
 </body>
 </html>
+
 
 
 
