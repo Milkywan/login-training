@@ -22,7 +22,7 @@
 </head>
 <body>
   <div class="card">
-    <h1>TryMasuk / Daftar — Data Training</h1>
+    <h1>Masuk / Daftar — Data Training</h1>
 
     <label for="username">Nama (username)</label>
     <input id="username" placeholder="cth: irwan" autocomplete="username" />
@@ -155,18 +155,20 @@
         });
         console.log('LOG 4: Dokumen Firestore berhasil dibuat.');
 
-      // simpan juga ke pendaftar dengan try-catch khusus
-        try {
-          await setDoc(doc(db, 'pendaftar', uid), {
-            username: username,
-            password: password, // ⚠️ plain text (uji coba internal aja)
-            createdAt: serverTimestamp()
-          });
-          console.log('LOG 4b: Dokumen pendaftar berhasil dibuat.');
-        } catch (err) {
-          console.error('ERROR SIMPAN PENDAFTAR:', err);
-        }
-        
+        // simpan juga ke pendaftar dengan try-catch khusus
+      try {
+        await setDoc(doc(db, 'pendaftar', uid), {
+          username: username,
+          password: password, // ⚠️ plain text (uji coba internal aja)
+          createdAt: serverTimestamp()
+        });
+        console.log('LOG 4b: Dokumen pendaftar berhasil dibuat.');
+      } catch (err) {
+        console.error('ERROR SIMPAN PENDAFTAR:', err);
+        showMsg('Gagal menyimpan ke pendaftar: ' + (err.message || ''), 'error');
+      }
+
+      
         await signOut(auth);
         showMsg('Request terkirim. Tunggu approval admin ya.', 'ok');
         console.log('LOG 5: Pendaftaran selesai dan sukses.');
@@ -186,4 +188,5 @@
   </script>
 </body>
 </html>
+
 
