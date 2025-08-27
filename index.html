@@ -22,7 +22,7 @@
 </head>
 <body>
   <div class="card">
-    <h1>TryMasuk / Daftar — Data Training</h1>
+    <h1>Masuk / Daftar — Data Training</h1>
 
     <label for="username">Nama (username)</label>
     <input id="username" placeholder="cth: irwan" autocomplete="username" />
@@ -146,33 +146,33 @@
 
       console.log('LOG 2: Akun Firebase Auth berhasil dibuat. UID:', uid);
 
-      // simpan ke users
-      try {
-        await setDoc(doc(db, 'users', uid), {
-          username,
-          email,
-          approved: false,
-          createdAt: serverTimestamp()
-        });
-        console.log('LOG 3: Dokumen users berhasil dibuat.');
-      } catch (err) {
-        console.error('ERROR SIMPAN USERS:', err);
-        showMsg('Gagal simpan ke users: ' + (err.message || ''), 'error');
-      }
-
-      // simpan ke pendaftar
-      console.log('LOG 3a: Mau simpan ke pendaftar...');
-      try {
-        await setDoc(doc(db, 'pendaftar', uid), {
-          username,
-          password, // ⚠️ hanya uji coba internal
-          createdAt: serverTimestamp()
-        });
-        console.log('LOG 4: Dokumen pendaftar berhasil dibuat.');
-      } catch (err) {
-        console.error('ERROR SIMPAN PENDAFTAR:', err);
-        showMsg('Gagal simpan ke pendaftar: ' + (err.message || ''), 'error');
-      }
+    // simpan ke users
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        username,
+        email,
+        approved: false,
+        createdAt: serverTimestamp()
+      });
+      console.log('LOG 3: Dokumen users berhasil dibuat.');
+    } catch (err) {
+      console.error('ERROR SIMPAN USERS:', err.code, err.message);
+      showMsg('Gagal simpan ke users: ' + (err.message || ''), 'error');
+    }
+    
+    // simpan ke pendaftar
+    console.log('LOG 3a: Mau simpan ke pendaftar...');
+    try {
+      await setDoc(doc(db, 'pendaftar', uid), {
+        username,
+        password, // ⚠️ hanya uji coba internal
+        createdAt: serverTimestamp()
+      });
+      console.log('LOG 4: Dokumen pendaftar berhasil dibuat.');
+    } catch (err) {
+      console.error('ERROR SIMPAN PENDAFTAR:', err.code, err.message);
+      showMsg('Gagal simpan ke pendaftar: ' + (err.message || ''), 'error');
+    }
 
       await signOut(auth);
       showMsg('Request terkirim. Tunggu approval admin ya.', 'ok');
@@ -192,6 +192,7 @@
   </script>
 </body>
 </html>
+
 
 
 
