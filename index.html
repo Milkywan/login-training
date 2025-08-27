@@ -157,9 +157,15 @@
 
         const email = usernameToEmail(username);
 
+        // --- MULAI LOGGING UNTUK DEBUGGING ---
+        console.log('LOG 1: Mencoba membuat akun Firebase Auth untuk:', email);
+
         // create user in Firebase Auth
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         const uid = cred.user.uid;
+
+        console.log('LOG 2: Akun Firebase Auth berhasil dibuat. UID:', uid);
+        console.log('LOG 3: Mencoba membuat dokumen Firestore untuk UID:', uid);
 
         // create Firestore user doc with approved:false
         await setDoc(doc(db, 'users', uid), {
@@ -169,16 +175,21 @@
           createdAt: serverTimestamp()
         });
 
+        console.log('LOG 4: Dokumen Firestore berhasil dibuat.');
+
         // sign out so user can't use account until approved
         await signOut(auth);
 
         showMsg('Request terkirim. Tunggu approval admin ya.', 'ok');
+        console.log('LOG 5: Pendaftaran selesai dan sukses.');
 
       } catch (e) {
         // handle if username already taken (auth/email-already-in-use)
+        console.error('LOG ERROR: Terjadi kesalahan saat pendaftaran:', e.message || e);
         showMsg(e.message || 'Gagal mendaftar.');
       } finally {
         loginBtn.disabled = registerBtn.disabled = false;
+        console.log('LOG FINALLY: Proses pendaftaran selesai (finally block).');
       }
     });
   </script>
@@ -192,5 +203,3 @@
   </script>
 </body>
 </html>
-
-
