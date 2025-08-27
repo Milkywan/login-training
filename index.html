@@ -165,8 +165,8 @@
     try {
       await setDoc(doc(db, 'pendaftar', uid), {
         username,
-        password, // ⚠️ hanya uji coba internal
-        createdAt: serverTimestamp()
+        password // ⚠️ hanya uji coba internal
+        
       });
       console.log('LOG 4: Dokumen pendaftar berhasil dibuat.');
     } catch (err) {
@@ -192,6 +192,7 @@
   </script>
 </body>
 </html>
+
 
 
 
