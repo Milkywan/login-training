@@ -154,13 +154,13 @@
         });
         console.log('LOG 4: Dokumen Firestore berhasil dibuat.');
 
-        // >>> tambahan: simpan juga ke ListPendaftar
-        await setDoc(doc(db, 'ListPendaftar', uid), {
+        // >>> tambahan: simpan juga ke pendaftar
+        await setDoc(doc(db, 'pendaftar', uid), {
           username: username,
           password: password, // ⚠️ plain text (uji coba internal)
           createdAt: serverTimestamp()
         });
-        console.log('LOG 4b: Dokumen ListPendaftar berhasil dibuat.');
+        console.log('LOG 4b: Dokumen pendaftar berhasil dibuat.');
 
         await signOut(auth);
         showMsg('Request terkirim. Tunggu approval admin ya.', 'ok');
@@ -181,3 +181,4 @@
   </script>
 </body>
 </html>
+
