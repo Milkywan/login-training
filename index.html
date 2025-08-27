@@ -37,7 +37,7 @@
     </div>
 
     <div id="message" class="msg"></div>
-    <div class="hint">Akun baru akan *pending* — Admin harus approve di Firestore (collection: <b>users</b>).</div>
+    <div class="hint">Login dengan akun <b>aktif</b> Anda. Jika belum punya akun silahkan Daftar.</div>
   </div>
 
   <!-- Script untuk logika login dan register -->
@@ -172,7 +172,7 @@
         // sign out so user can't use account until approved
         await signOut(auth);
 
-        showMsg('Request terkirim. Tunggu approval admin di Firebase Console.', 'ok');
+        showMsg('Request terkirim. Tunggu approval admin ya.', 'ok');
 
       } catch (e) {
         // handle if username already taken (auth/email-already-in-use)
@@ -192,3 +192,4 @@
   </script>
 </body>
 </html>
+
