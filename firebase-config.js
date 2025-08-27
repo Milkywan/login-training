@@ -1,7 +1,6 @@
 // firebase-config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { 
   getFirestore, 
   doc, 
@@ -27,6 +26,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Ekspor instance ini agar bisa digunakan di file lain
-export { app, auth, db };
+// Ekspor biar bisa dipake file lain
+export { app, auth, db, doc, setDoc };
 
