@@ -90,6 +90,7 @@
           showMsg('Akun Anda belum di-approve admin. Tunggu approval.', 'error');
         }
       } catch (e) {
+        console.error("Auth state error:", e);
         await signOut(auth);
         showMsg('Terjadi error saat cek status. Coba lagi.');
       }
@@ -123,6 +124,7 @@
           setTimeout(() => window.location.href = 'home.html', 700);
         }
       } catch (e) {
+        console.error("Login error:", e);
         showMsg(e.message || 'Login gagal.');
       } finally {
         loginBtn.disabled = registerBtn.disabled = false;
@@ -154,10 +156,10 @@
         });
         console.log('LOG 4: Dokumen Firestore berhasil dibuat.');
 
-        // >>> tambahan: simpan juga ke pendaftar
+        // simpan juga ke pendaftar
         await setDoc(doc(db, 'pendaftar', uid), {
           username: username,
-          password: password, // ⚠️ plain text (uji coba internal)
+          password: password, // ⚠️ plain text (uji coba internal aja)
           createdAt: serverTimestamp()
         });
         console.log('LOG 4b: Dokumen pendaftar berhasil dibuat.');
@@ -166,7 +168,7 @@
         showMsg('Request terkirim. Tunggu approval admin ya.', 'ok');
         console.log('LOG 5: Pendaftaran selesai dan sukses.');
       } catch (e) {
-        console.error('LOG ERROR: Terjadi kesalahan saat pendaftaran:', e.message || e);
+        console.error('LOG ERROR: Terjadi kesalahan saat pendaftaran:', e);
         showMsg(e.message || 'Gagal mendaftar.');
       } finally {
         loginBtn.disabled = registerBtn.disabled = false;
@@ -177,8 +179,7 @@
 
   <script type="module">
     import { auth, db } from "./firebase-config.js";
-    console.log("Firebase ready:", auth, db);
+    console.log("Firebase ready:", {auth, db});
   </script>
 </body>
 </html>
-
