@@ -18,31 +18,46 @@
     .msg.error{color:#b91c1c}
     .msg.ok{color:#15803d}
     .hint{font-size:12px;color:#666;margin-top:8px;text-align:center}
+    .hidden{display:none}
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Masuk / Daftar — Data Training</h1>
 
-    <label for="username">Nama (username)</label>
-    <input id="username" placeholder="cth: irwan" autocomplete="username" />
-
-    <label for="password">Password</label>
-    <input id="password" type="password" placeholder="••••••" autocomplete="current-password" />
-
-    <div class="row">
-      <button id="loginBtn" class="btn-primary">Masuk</button>
-      <button id="registerBtn" class="btn-secondary">Daftar (Request)</button>
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <h1>Login — Data Training</h1>
+      <label for="login-username">Username</label>
+      <input id="login-username" placeholder="cth: irwan" autocomplete="username" />
+      <label for="login-password">Password</label>
+      <input id="login-password" type="password" placeholder="••••••" autocomplete="current-password" />
+      <div class="row">
+        <button id="loginBtn" class="btn-primary">Masuk</button>
+      </div>
+      <div id="loginMessage" class="msg"></div>
+      <div class="hint">Belum punya akun? <a href="#" onclick="showRegister()">Daftar Sekarang</a></div>
     </div>
 
-    <div id="message" class="msg"></div>
-    <div class="hint">Login dengan akun <b>aktif</b> Anda. Jika belum punya akun silahkan <b>Daftar</b>.</div>
+    <!-- REGISTER FORM -->
+    <div id="registerForm" class="hidden">
+      <h1>Daftar — Data Training</h1>
+      <label for="reg-username">Username</label>
+      <input id="reg-username" placeholder="cth: irwan" />
+      <label for="reg-email">Email</label>
+      <input id="reg-email" type="email" placeholder="cth: irwan@gmail.com" />
+      <label for="reg-password">Password</label>
+      <input id="reg-password" type="password" placeholder="••••••" />
+      <div class="row">
+        <button id="registerBtn" class="btn-secondary">Daftar</button>
+      </div>
+      <div id="registerMessage" class="msg"></div>
+      <div class="hint">Sudah punya akun? <a href="#" onclick="showLogin()">Login</a></div>
+    </div>
+
   </div>
 
-  <!-- Script untuk logika login dan register -->
   <script type="module">
   import { auth, db } from "./firebase-config.js";
-
   import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
@@ -50,137 +65,72 @@
     onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
   import {
-    doc,
-    setDoc,
-    getDoc,
-    serverTimestamp
+    doc, setDoc, getDoc, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-  function usernameToEmail(username) {
-    const u = String(username || "").trim().toLowerCase();
-    if (!u) throw new Error("Username kosong.");
-    return `${u}@datatraining.local`;
-  }
+  // Toggle form
+  window.showRegister = () => {
+    document.getElementById("loginForm").classList.add("hidden");
+    document.getElementById("registerForm").classList.remove("hidden");
+  };
+  window.showLogin = () => {
+    document.getElementById("registerForm").classList.add("hidden");
+    document.getElementById("loginForm").classList.remove("hidden");
+  };
 
-  const loginBtn = document.getElementById('loginBtn');
-  const registerBtn = document.getElementById('registerBtn');
-  const msgEl = document.getElementById('message');
-
-  function showMsg(text, type = 'error') {
-    msgEl.textContent = text;
-    msgEl.className = 'msg ' + (type === 'ok' ? 'ok' : 'error');
-  }
-  function clearMsg() {
-    msgEl.textContent = '';
-    msgEl.className = 'msg';
-  }
-
-  // cek auth state
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) return;
+  // === LOGIN ===
+  const loginBtn = document.getElementById("loginBtn");
+  loginBtn.addEventListener("click", async () => {
+    const username = document.getElementById("login-username").value.trim();
+    const password = document.getElementById("login-password").value;
+    const msgEl = document.getElementById("loginMessage");
+    msgEl.textContent = "";
     try {
-      const docRef = doc(db, 'users', user.uid);
-      const snap = await getDoc(docRef);
-      if (snap.exists() && snap.data().approved === true) {
-        localStorage.setItem('loginTime', Date.now());
-        window.location.href = 'home.html';
-      } else {
-        await signOut(auth);
-        showMsg('Akun Anda belum di-approve admin. Tunggu approval.', 'error');
-      }
-    } catch (e) {
-      console.error("Auth state error:", e);
-      await signOut(auth);
-      showMsg('Terjadi error saat cek status. Coba lagi.');
-    }
-  });
-
-  // LOGIN
-  loginBtn.addEventListener('click', async () => {
-    clearMsg();
-    loginBtn.disabled = registerBtn.disabled = true;
-    try {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value;
-      if (!username || !password) throw new Error('Username & password wajib diisi.');
-
-      const email = usernameToEmail(username);
+      if (!username || !password) throw new Error("Isi username & password.");
+      const email = `${username}@datatraining.local`; // dummy email dari username
       const cred = await signInWithEmailAndPassword(auth, email, password);
       const uid = cred.user.uid;
-
-      const userDocRef = doc(db, 'users', uid);
-      const snap = await getDoc(userDocRef);
-
-      if (!snap.exists()) {
-        await signOut(auth);
-        showMsg('Akun belum lengkap (admin belum menambahkan data). Hubungi admin.', 'error');
-      } else if (snap.data().approved !== true) {
-        await signOut(auth);
-        showMsg('Akun Anda belum di-approve admin. Tunggu approval.', 'error');
-      } else {
-        localStorage.setItem('loginTime', Date.now());
-        showMsg('Login sukses. Mengarahkan...', 'ok');
-        setTimeout(() => window.location.href = 'home.html', 700);
-      }
+      const snap = await getDoc(doc(db, "users", uid));
+      if (!snap.exists()) throw new Error("Data akun tidak lengkap. Hubungi admin.");
+      if (snap.data().approved !== true) throw new Error("Akun Anda belum di-approve admin.");
+      localStorage.setItem("loginTime", Date.now());
+      msgEl.textContent = "Login sukses. Mengarahkan...";
+      msgEl.className = "msg ok";
+      setTimeout(() => window.location.href = "home.html", 800);
     } catch (e) {
-      console.error("Login error:", e);
-      showMsg(e.message || 'Login gagal.');
-    } finally {
-      loginBtn.disabled = registerBtn.disabled = false;
+      msgEl.textContent = e.message || "Login gagal.";
+      msgEl.className = "msg error";
     }
   });
 
-  // REGISTER
-  // REGISTER
-registerBtn.addEventListener('click', async () => {
-  clearMsg();
-  loginBtn.disabled = registerBtn.disabled = true;
-  try {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    if (!username || !password) throw new Error('Username & password wajib diisi.');
-    const email = usernameToEmail(username);
-
-    console.log('LOG 1: Mencoba membuat akun Firebase Auth untuk:', email);
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = cred.user.uid;
-
-    console.log('LOG 2: Akun Firebase Auth berhasil dibuat. UID:', uid);
-
-    // 1. simpan ke pendaftar lebih dulu
-    console.log('LOG 3a: Mau simpan ke pendaftar...');
-    await setDoc(doc(db, 'pendaftar', uid), {
-      username,
-      password, // ⚠️ uji coba internal
-      createdAt: new Date().toISOString()
-    });
-    console.log('LOG 4: Dokumen pendaftar berhasil dibuat.');
-
-    // 2. baru simpan ke users
-    await setDoc(doc(db, 'users', uid), {
-      username,
-      email,
-      approved: false,
-      createdAt: new Date().toISOString()
-    });
-    console.log('LOG 5: Dokumen users berhasil dibuat.');
-
-    // 3. sign out
-    await signOut(auth);
-    showMsg('Request terkirim. Tunggu approval admin ya.', 'ok');
-    console.log('LOG 6: Pendaftaran selesai dan sukses.');
-  } catch (e) {
-    console.error('LOG ERROR: Terjadi kesalahan saat pendaftaran:', e);
-    showMsg(e.message || 'Gagal mendaftar.');
-  } finally {
-    loginBtn.disabled = registerBtn.disabled = false;
-    console.log('LOG FINALLY: Proses pendaftaran selesai (finally block).');
-  }
-});
-</script>
-  <script type="module">
-    import { auth, db } from "./firebase-config.js";
-    console.log("Firebase ready:", {auth, db});
+  // === REGISTER ===
+  const registerBtn = document.getElementById("registerBtn");
+  registerBtn.addEventListener("click", async () => {
+    const username = document.getElementById("reg-username").value.trim();
+    const email = document.getElementById("reg-email").value.trim();
+    const password = document.getElementById("reg-password").value;
+    const msgEl = document.getElementById("registerMessage");
+    msgEl.textContent = "";
+    try {
+      if (!username || !email || !password) throw new Error("Isi semua field.");
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = cred.user.uid;
+      // simpan ke pendaftar
+      await setDoc(doc(db, "pendaftar", uid), {
+        username, email, password, createdAt: serverTimestamp()
+      });
+      // simpan ke users
+      await setDoc(doc(db, "users", uid), {
+        username, email, approved: false, createdAt: serverTimestamp()
+      });
+      await signOut(auth);
+      msgEl.textContent = "Pendaftaran berhasil. Tunggu approval admin.";
+      msgEl.className = "msg ok";
+    } catch (e) {
+      msgEl.textContent = e.message || "Pendaftaran gagal.";
+      msgEl.className = "msg error";
+    }
+  });
   </script>
 </body>
 </html>
