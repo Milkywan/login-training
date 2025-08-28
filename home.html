@@ -78,29 +78,26 @@
   </div>
 </div>
 
-<!-- PapaParse -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
-<!-- Firebase + Auth -->
 <script type="module">
-  // Impor instance auth yang sudah diinisialisasi dari firebase-config.js
+
   import { auth } from "./firebase-config.js";
   import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-  // 🔐 Cek apakah user login
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      window.location.href = "index.html"; // kalau belum login
+      window.location.href = "index.html"; 
     } else {
       console.log("User login:", user.uid);
-      // Simpan waktu login kalau belum ada
+     
       if (!localStorage.getItem("loginTime")) {
         localStorage.setItem("loginTime", Date.now());
       }
     }
   });
 
-  // 🚪 Logout manual
+
   document.getElementById("logoutBtn").addEventListener("click", () => {
     signOut(auth).then(() => {
       localStorage.removeItem("loginTime");
@@ -108,13 +105,13 @@
     });
   });
 
-  // ⏰ Auto logout setelah 10 menit
+
   setInterval(() => {
     const loginTime = localStorage.getItem("loginTime");
     if (loginTime) {
       const now = Date.now();
       const diff = now - loginTime;
-      if (diff >= 10 * 60 * 1000) { // 10 menit
+      if (diff >= 10 * 60 * 1000) { 
         signOut(auth).then(() => {
           localStorage.removeItem("loginTime");
           alert("Sesi Anda habis, silakan login ulang.");
@@ -122,18 +119,12 @@
         });
       }
     }
-  }, 60000); // cek tiap 1 menit
+  }, 60000); 
 </script>
 
-<!-- Script lama lo -->
+
 <script type="module" src="analytics.js"></script>
 <script type="module" src="script.js"></script>
-<!-- Jika script.js atau analytics.js membutuhkan 'db' dari Firestore,
-     maka Anda juga perlu mengimpornya dari firebase-config.js
-     di awal salah satu script module ini, misalnya di script.js atau
-     di blok script Firebase + Auth di atas jika home.html langsung menggunakannya.
-     Untuk saat ini, saya hanya mengimpor 'auth' sesuai yang Anda tulis.
--->
 
 </body>
 </html>
