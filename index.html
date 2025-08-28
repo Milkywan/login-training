@@ -26,7 +26,7 @@
 
     <!-- LOGIN FORM -->
     <div id="loginForm">
-      <h1>Login — Data Training</h1>
+      <h1>2 Pages Login — Data Training</h1>
       <label for="login-username">Username</label>
       <input id="login-username" placeholder="cth: irwan" autocomplete="username" />
       <label for="login-password">Password</label>
@@ -78,30 +78,43 @@
     document.getElementById("loginForm").classList.remove("hidden");
   };
 
-  // === LOGIN ===
-  const loginBtn = document.getElementById("loginBtn");
-  loginBtn.addEventListener("click", async () => {
-    const username = document.getElementById("login-username").value.trim();
-    const password = document.getElementById("login-password").value;
-    const msgEl = document.getElementById("loginMessage");
-    msgEl.textContent = "";
-    try {
-      if (!username || !password) throw new Error("Isi username & password.");
-      const email = `${username}@datatraining.local`; // dummy email dari username
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      const uid = cred.user.uid;
-      const snap = await getDoc(doc(db, "users", uid));
-      if (!snap.exists()) throw new Error("Data akun tidak lengkap. Hubungi admin.");
-      if (snap.data().approved !== true) throw new Error("Akun Anda belum di-approve admin.");
-      localStorage.setItem("loginTime", Date.now());
-      msgEl.textContent = "Login sukses. Mengarahkan...";
-      msgEl.className = "msg ok";
-      setTimeout(() => window.location.href = "home.html", 800);
-    } catch (e) {
-      msgEl.textContent = e.message || "Login gagal.";
-      msgEl.className = "msg error";
-    }
-  });
+ import { query, collection, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+// LOGIN pakai username
+loginBtn.addEventListener("click", async () => {
+  const username = document.getElementById("login-username").value.trim();
+  const password = document.getElementById("login-password").value;
+  const msgEl = document.getElementById("loginMessage");
+  msgEl.textContent = "";
+
+  try {
+    if (!username || !password) throw new Error("Isi username & password.");
+
+    // Cari email asli dari Firestore
+    const q = query(collection(db, "users"), where("username", "==", username));
+    const snap = await getDocs(q);
+    if (snap.empty) throw new Error("Username tidak ditemukan.");
+
+    const userData = snap.docs[0].data();
+    const email = userData.email;
+
+    // Login pakai email asli
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
+
+    if (userData.approved !== true) throw new Error("Akun belum di-approve admin.");
+
+    localStorage.setItem("loginTime", Date.now());
+    msgEl.textContent = "Login sukses. Mengarahkan...";
+    msgEl.className = "msg ok";
+    setTimeout(() => window.location.href = "home.html", 800);
+
+  } catch (e) {
+    msgEl.textContent = e.message || "Login gagal.";
+    msgEl.className = "msg error";
+  }
+});
+
 
   // === REGISTER ===
   const registerBtn = document.getElementById("registerBtn");
@@ -134,3 +147,4 @@
   </script>
 </body>
 </html>
+
