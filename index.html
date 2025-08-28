@@ -24,9 +24,8 @@
 <body>
   <div class="card">
 
-    <!-- LOGIN FORM -->
     <div id="loginForm">
-      <h1>2 Pages Login — Data Training</h1>
+      <h1>Login — Data Training</h1>
       <label for="login-username">Username</label>
       <input id="login-username" placeholder="cth: irwan" autocomplete="username" />
       <label for="login-password">Password</label>
@@ -38,10 +37,9 @@
       <div class="hint">Belum punya akun? <a href="#" onclick="showRegister()">Daftar Sekarang</a></div>
     </div>
 
-    <!-- REGISTER FORM -->
-    <div id="registerForm" class="hidden">
+       <div id="registerForm" class="hidden">
       <h1>Daftar — Data Training</h1>
-      <label for="reg-username">Username</label>
+      <label for="reg-username">Username (tanpa spasi)</label>
       <input id="reg-username" placeholder="cth: irwan" />
       <label for="reg-email">Email</label>
       <input id="reg-email" type="email" placeholder="cth: irwan@gmail.com" />
@@ -68,8 +66,7 @@
     doc, setDoc, getDoc, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-  // Toggle form
-  window.showRegister = () => {
+    window.showRegister = () => {
     document.getElementById("loginForm").classList.add("hidden");
     document.getElementById("registerForm").classList.remove("hidden");
   };
@@ -80,7 +77,6 @@
 
  import { query, collection, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-// LOGIN pakai username
 loginBtn.addEventListener("click", async () => {
   const username = document.getElementById("login-username").value.trim();
   const password = document.getElementById("login-password").value;
@@ -90,16 +86,14 @@ loginBtn.addEventListener("click", async () => {
   try {
     if (!username || !password) throw new Error("Isi username & password.");
 
-    // Cari email asli dari Firestore
-    const q = query(collection(db, "users"), where("username", "==", username));
+      const q = query(collection(db, "users"), where("username", "==", username));
     const snap = await getDocs(q);
     if (snap.empty) throw new Error("Username tidak ditemukan.");
 
     const userData = snap.docs[0].data();
     const email = userData.email;
 
-    // Login pakai email asli
-    const cred = await signInWithEmailAndPassword(auth, email, password);
+       const cred = await signInWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
     if (userData.approved !== true) throw new Error("Akun belum di-approve admin.");
@@ -115,8 +109,6 @@ loginBtn.addEventListener("click", async () => {
   }
 });
 
-
-  // === REGISTER ===
   const registerBtn = document.getElementById("registerBtn");
   registerBtn.addEventListener("click", async () => {
     const username = document.getElementById("reg-username").value.trim();
@@ -128,11 +120,9 @@ loginBtn.addEventListener("click", async () => {
       if (!username || !email || !password) throw new Error("Isi semua field.");
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const uid = cred.user.uid;
-      // simpan ke pendaftar
       await setDoc(doc(db, "pendaftar", uid), {
         username, email, password, createdAt: serverTimestamp()
       });
-      // simpan ke users
       await setDoc(doc(db, "users", uid), {
         username, email, approved: false, createdAt: serverTimestamp()
       });
@@ -147,4 +137,5 @@ loginBtn.addEventListener("click", async () => {
   </script>
 </body>
 </html>
+
 
