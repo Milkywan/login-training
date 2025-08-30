@@ -50,17 +50,16 @@ import { auth } from './firebase-config.js';
 
 // Fungsi reset password
 function resetPassword(email) {
-  const auth = getAuth();
   sendPasswordResetEmail(auth, email)
     .then(() => {
-      alert("✅ Link reset password sudah dikirim ke email: " + email);
+        "✅ Link reset password sudah dikirim ke email: " + email +
+        "\n\n📬 Jika tidak ada di inbox, silakan periksa folder Junk/Spam."
+      );
     })
     .catch((error) => {
-      console.error("❌ Gagal kirim reset password:", error.code, error.message);
-      alert("Gagal mengirim link reset: " + error.code + " | " + error.message);
+      alert("❌ Gagal mengirim link reset: " + (error.message || "Terjadi kesalahan."));
     });
 }
-
 
 // Tambahin event listener untuk tombol/link lupa password
 document.addEventListener('DOMContentLoaded', () => {
@@ -76,5 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+
 
 
