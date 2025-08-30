@@ -137,11 +137,12 @@
     });
 
     forgotPasswordBtn.addEventListener("click", async () => {
-      const email = prompt("Masukkan email untuk reset password:");
+      const email = prompt("TryMasukkan email untuk reset password:");
       if (!email) return;
       try {
         await sendPasswordResetEmail(auth, email);
-        alert("Link reset password sudah dikirim ke " + email);
+        alert("Link reset password sudah dikirim ke " + email +
+      "\n\n📌 Jika email tidak masuk di Inbox, coba periksa folder Junk atau Spam.");
       } catch (e) {
         alert("Gagal mengirim reset password: " + (e.message || e));
       }
@@ -149,6 +150,7 @@
   </script>
 </body>
 </html>
+
 
 
 
