@@ -19,6 +19,7 @@
     .msg.ok{color:#15803d}
     .hint{font-size:12px;color:#666;margin-top:8px;text-align:center}
     .hidden{display:none}
+    .link-btn{background:none;border:none;color:#4f46e5;cursor:pointer;padding:0;font-size:12px;text-decoration:underline}
   </style>
 </head>
 <body>
@@ -33,11 +34,14 @@
       <div class="row">
         <button id="loginBtn" class="btn-primary">Masuk</button>
       </div>
+      <div class="hint">
+        <button id="forgotPasswordBtn" class="link-btn" type="button">Lupa password?</button>
+      </div>
       <div id="loginMessage" class="msg"></div>
       <div class="hint">Belum punya akun? <a href="#" onclick="showRegister()">Daftar Sekarang</a></div>
     </div>
 
-       <div id="registerForm" class="hidden">
+    <div id="registerForm" class="hidden">
       <h1>Daftar — Data Training</h1>
       <label for="reg-username">Username (tanpa spasi)</label>
       <input id="reg-username" placeholder="cth: irwan" />
@@ -51,96 +55,94 @@
       <div id="registerMessage" class="msg"></div>
       <div class="hint">Sudah punya akun? <a href="#" onclick="showLogin()">Login</a></div>
     </div>
-<footer>
-  <div class="hint"> <br>© 2025 by <a href="https://irwanss.web.app/" target="_blank" rel="noopener">IrwanS</a></div>
-</footer>
+    <footer>
+      <div class="hint"><br>© 2025 by <a href="https://irwanss.web.app/" target="_blank" rel="noopener">IrwanS</a></div>
+    </footer>
   </div>
   <script type="module">
-  import { auth, db } from "./firebase-config.js";
-  import {
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-  import {
-    doc, setDoc, getDoc, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { auth, db } from "./firebase-config.js";
+    import {
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      signOut,
+      sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import {
+      doc, setDoc, serverTimestamp, query, collection, where, getDocs
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
     window.showRegister = () => {
-    document.getElementById("loginForm").classList.add("hidden");
-    document.getElementById("registerForm").classList.remove("hidden");
-  };
-  window.showLogin = () => {
-    document.getElementById("registerForm").classList.add("hidden");
-    document.getElementById("loginForm").classList.remove("hidden");
-  };
+      document.getElementById("loginForm").classList.add("hidden");
+      document.getElementById("registerForm").classList.remove("hidden");
+    };
+    window.showLogin = () => {
+      document.getElementById("registerForm").classList.add("hidden");
+      document.getElementById("loginForm").classList.remove("hidden");
+    };
 
- import { query, collection, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    loginBtn.addEventListener("click", async () => {
+      const username = document.getElementById("login-username").value.trim();
+      const password = document.getElementById("login-password").value;
+      const msgEl = document.getElementById("loginMessage");
+      msgEl.textContent = "";
 
-loginBtn.addEventListener("click", async () => {
-  const username = document.getElementById("login-username").value.trim();
-  const password = document.getElementById("login-password").value;
-  const msgEl = document.getElementById("loginMessage");
-  msgEl.textContent = "";
+      try {
+        if (!username || !password) throw new Error("Isi username & password.");
+        const q = query(collection(db, "users"), where("username", "==", username));
+        const snap = await getDocs(q);
+        if (snap.empty) throw new Error("Username tidak ditemukan.");
+        const userData = snap.docs[0].data();
+        const email = userData.email;
 
-  try {
-    if (!username || !password) throw new Error("Isi username & password.");
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        if (userData.approved !== true) throw new Error("Akun belum di-approve admin.");
 
-      const q = query(collection(db, "users"), where("username", "==", username));
-    const snap = await getDocs(q);
-    if (snap.empty) throw new Error("Username tidak ditemukan.");
+        localStorage.setItem("loginTime", Date.now());
+        msgEl.textContent = "Login sukses. Mengarahkan...";
+        msgEl.className = "msg ok";
+        setTimeout(() => window.location.href = "home.html", 800);
 
-    const userData = snap.docs[0].data();
-    const email = userData.email;
+      } catch (e) {
+        msgEl.textContent = e.message || "Login gagal.";
+        msgEl.className = "msg error";
+      }
+    });
 
-       const cred = await signInWithEmailAndPassword(auth, email, password);
-    const uid = cred.user.uid;
+    registerBtn.addEventListener("click", async () => {
+      const username = document.getElementById("reg-username").value.trim();
+      const email = document.getElementById("reg-email").value.trim();
+      const password = document.getElementById("reg-password").value;
+      const msgEl = document.getElementById("registerMessage");
+      msgEl.textContent = "";
+      try {
+        if (!username || !email || !password) throw new Error("Isi semua field.");
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = cred.user.uid;
+        await setDoc(doc(db, "pendaftar", uid), {
+          username, email, password, createdAt: serverTimestamp()
+        });
+        await setDoc(doc(db, "users", uid), {
+          username, email, approved: false, createdAt: serverTimestamp()
+        });
+        await signOut(auth);
+        msgEl.textContent = "Pendaftaran berhasil. Tunggu approval admin.";
+        msgEl.className = "msg ok";
+      } catch (e) {
+        msgEl.textContent = e.message || "Pendaftaran gagal.";
+        msgEl.className = "msg error";
+      }
+    });
 
-    if (userData.approved !== true) throw new Error("Akun belum di-approve admin.");
-
-    localStorage.setItem("loginTime", Date.now());
-    msgEl.textContent = "Login sukses. Mengarahkan...";
-    msgEl.className = "msg ok";
-    setTimeout(() => window.location.href = "home.html", 800);
-
-  } catch (e) {
-    msgEl.textContent = e.message || "Login gagal.";
-    msgEl.className = "msg error";
-  }
-});
-
-  const registerBtn = document.getElementById("registerBtn");
-  registerBtn.addEventListener("click", async () => {
-    const username = document.getElementById("reg-username").value.trim();
-    const email = document.getElementById("reg-email").value.trim();
-    const password = document.getElementById("reg-password").value;
-    const msgEl = document.getElementById("registerMessage");
-    msgEl.textContent = "";
-    try {
-      if (!username || !email || !password) throw new Error("Isi semua field.");
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = cred.user.uid;
-      await setDoc(doc(db, "pendaftar", uid), {
-        username, email, password, createdAt: serverTimestamp()
-      });
-      await setDoc(doc(db, "users", uid), {
-        username, email, approved: false, createdAt: serverTimestamp()
-      });
-      await signOut(auth);
-      msgEl.textContent = "Pendaftaran berhasil. Tunggu approval admin.";
-      msgEl.className = "msg ok";
-    } catch (e) {
-      msgEl.textContent = e.message || "Pendaftaran gagal.";
-      msgEl.className = "msg error";
-    }
-  });
+    forgotPasswordBtn.addEventListener("click", async () => {
+      const email = prompt("Masukkan email untuk reset password:");
+      if (!email) return;
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("Link reset password sudah dikirim ke " + email);
+      } catch (e) {
+        alert("Gagal mengirim reset password: " + (e.message || e));
+      }
+    });
   </script>
 </body>
 </html>
-
-
-
-
-
-
