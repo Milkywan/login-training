@@ -42,3 +42,35 @@ document.addEventListener('DOMContentLoaded', () => {
     
 });
 
+// Tambah import Firebase Auth di bagian atas (pastikan ini udah di-setup di firebase-config.js)
+import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+// --- kode script.js lu yang lama di atas biarin tetap ---
+
+// Fungsi reset password
+function resetPassword(email) {
+  const auth = getAuth();
+  sendPasswordResetEmail(auth, email)
+    .then(() => {
+      alert("Link reset password sudah dikirim ke email: " + email);
+    })
+    .catch((error) => {
+      alert("Gagal mengirim link reset: " + (error.message || "Terjadi kesalahan."));
+    });
+}
+
+// Tambahin event listener untuk tombol/link lupa password
+document.addEventListener('DOMContentLoaded', () => {
+  // --- kode DOMContentLoaded lama lu di sini tetap ---
+  
+  // Pastikan ada elemen tombol/link dengan id forgotPasswordBtn di login.html
+  const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+  if (forgotPasswordBtn) {
+    forgotPasswordBtn.addEventListener('click', () => {
+      const email = prompt("Masukkan email akun kamu untuk reset password:");
+      if (email) {
+        resetPassword(email.trim());
+      }
+    });
+  }
+});
