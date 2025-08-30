@@ -137,7 +137,7 @@
     });
 
     forgotPasswordBtn.addEventListener("click", async () => {
-      const email = prompt("TryMasukkan email untuk reset password:");
+      const email = prompt("Masukkan email untuk reset password:");
       if (!email) return;
       try {
         await sendPasswordResetEmail(auth, email);
@@ -150,6 +150,7 @@
   </script>
 </body>
 </html>
+
 
 
 
