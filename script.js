@@ -53,9 +53,7 @@ function resetPassword(email) {
   sendPasswordResetEmail(auth, email)
     .then(() => {
       alert(
-        "✅ Link reset password sudah dikirim ke email: " + email +
-        "\n\n📌 Jika email tidak masuk di Inbox, coba periksa folder Junk atau Spam."
-      );
+        "✅ Jika email tidak masuk di Inbox, coba periksa folder Junk atau Spam. Link reset password sudah dikirim ke email: " + email);
     })
     .catch((error) => {
       alert(
@@ -78,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 
