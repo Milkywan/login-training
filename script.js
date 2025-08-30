@@ -48,37 +48,32 @@ document.addEventListener('DOMContentLoaded', () => {
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { auth } from './firebase-config.js';
 
-// Fungsi reset password (versi elegan)
+// Fungsi reset password
 function resetPassword(email) {
-  const msgBox = document.getElementById("resetMessage"); // Pastikan ada elemen ini di HTML
-  msgBox.textContent = "";
-  msgBox.className = "msg"; // reset styling
-
   sendPasswordResetEmail(auth, email)
     .then(() => {
-      msgBox.textContent =
+      alert(
         "✅ Link reset password sudah dikirim ke email: " + email +
-        ". Jika tidak ada di inbox, silakan periksa folder Junk/Spam.";
-      msgBox.classList.add("ok");
+        "\n\n📌 Jika email tidak masuk di Inbox, coba periksa folder Junk atau Spam."
+      );
     })
     .catch((error) => {
-      msgBox.textContent =
-        "❌ Gagal mengirim link reset: " + (error.message || "Terjadi kesalahan.");
-      msgBox.classList.add("error");
+      alert(
+        "❌ Gagal mengirim link reset: " + (error.message || "Terjadi kesalahan.")
+      );
     });
 }
 
-
-// Tambahin event listener untuk tombol/link lupa password
+// Tambahin event listener setelah DOM siap
 document.addEventListener('DOMContentLoaded', () => {
-  // --- event listener lama lu tetap di sini ---
-
   const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
   if (forgotPasswordBtn) {
     forgotPasswordBtn.addEventListener('click', () => {
       const email = prompt("Masukkan email akun kamu untuk reset password:");
       if (email) {
         resetPassword(email.trim());
+      } else {
+        alert("⚠️ Mohon masukkan email yang valid.");
       }
     });
   }
