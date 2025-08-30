@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
   if (forgotPasswordBtn) {
     forgotPasswordBtn.addEventListener('click', () => {
-      const email = prompt("Masukkan email akun kamu untuk reset password:");
+      const email = prompt("tryMasukkan email akun kamu untuk reset password:");
       if (email) {
         resetPassword(email.trim());
       } else {
@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 
